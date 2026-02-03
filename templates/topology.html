@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURENET // NETWORK TOPOLOGY</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #02040a;
+            --bg-panel: rgba(10, 15, 25, 0.7);
+            --glass-card: rgba(20, 30, 50, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-cyber: #00f3ff;
+            --accent-danger: #ff0055;
+            --accent-safe: #00ff9d;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --font-ui: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app-wrapper {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 80px;
+            background: rgba(5, 5, 10, 0.8);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--accent-cyber);
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 10, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        #cy {
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background: radial-gradient(circle at 50% 50%, #0a101f 0%, #02040a 100%);
+        }
+
+        .topology-overlay {
+            position: absolute;
+            top: 80px;
+            left: 100px;
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            padding: 1rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <a href="/" class="nav-item" title="Dashboard"><i class="lni lni-grid-alt"></i></a>
+            <a href="/history" class="nav-item" title="Analytics"><i class="lni lni-stats-up"></i></a>
+            <div class="nav-item active" title="Network Topology"><i class="lni lni-network"></i></div>
+            <div style="flex-grow: 1;"></div>
+            <a href="/logout" class="nav-item" style="color: var(--accent-danger);"><i class="lni lni-exit"></i></a>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="font-weight: 600; font-size: 1.2rem; color: var(--accent-cyber);">NETWORK TOPOLOGY // LIVE
+                    ASSET MAP</div>
+            </header>
+
+            <div id="cy"></div>
+
+            <div class="topology-overlay">
+                <div class="legend-item">
+                    <div class="dot" style="background: #00ff9d;"></div> Safe Internal Host
+                </div>
+                <div class="dot-item legend-item">
+                    <div class="dot" style="background: #00f3ff;"></div> IDS Command Center
+                </div>
+                <div class="dot-item legend-item">
+                    <div class="dot" style="background: #ff0055;"></div> Blocked/Malicious Node
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: [
+                    // Command Center
+                    { data: { id: 'center', label: 'IDS CENTER', type: 'center' } },
+                    // Internal Assets
+                    { data: { id: 'srv1', label: 'DB SERVER', type: 'host' } },
+                    { data: { id: 'srv2', label: 'WEB APP', type: 'host' } },
+                    { data: { id: 'ws1', label: 'WK-STATION 01', type: 'host' } },
+                    // Connections
+                    { data: { source: 'center', target: 'srv1' } },
+                    { data: { source: 'center', target: 'srv2' } },
+                    { data: { source: 'center', target: 'ws1' } }
+                ],
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#00ff9d',
+                            'label': 'data(label)',
+                            'color': '#fff',
+                            'font-family': 'Outfit',
+                            'font-size': '12px',
+                            'text-valign': 'bottom',
+                            'text-margin-y': '8px',
+                            'width': '40px',
+                            'height': '40px',
+                            'border-width': '2px',
+                            'border-color': 'rgba(255,255,255,0.2)'
+                        }
+                    },
+                    {
+                        selector: 'node[type="center"]',
+                        style: {
+                            'background-color': '#00f3ff',
+                            'width': '60px',
+                            'height': '60px',
+                            'shape': 'diamond'
+                        }
+                    },
+                    {
+                        selector: 'node[type="threat"]',
+                        style: {
+                            'background-color': '#ff0055',
+                            'border-color': '#ff0055',
+                            'width': '50px',
+                            'height': '50px'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2,
+                            'line-color': 'rgba(0, 243, 255, 0.2)',
+                            'curve-style': 'bezier',
+                            'target-arrow-shape': 'triangle',
+                            'target-arrow-color': 'rgba(0, 243, 255, 0.2)'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cose',
+                    animate: true
+                }
+            });
+
+            // Fetch threats periodically to update graph
+            async function updateTopology() {
+                try {
+                    const response = await fetch('/api/threats');
+                    const data = await response.json();
+
+                    data.blocked.forEach(ip => {
+                        if (!cy.getElementById(ip).length) {
+                            cy.add([
+                                { data: { id: ip, label: 'ATTACKER: ' + ip, type: 'threat' } },
+                                { data: { source: ip, target: 'center' } }
+                            ]);
+                            cy.layout({ name: 'cose', animate: true }).run();
+                        }
+                    });
+                } catch (e) {
+                    console.error("Topology fetch failed", e);
+                }
+            }
+
+            setInterval(updateTopology, 5000);
+            updateTopology();
+        });
+    </script>
+</body>
+
+</html>

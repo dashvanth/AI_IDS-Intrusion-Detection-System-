@@ -1,0 +1,107 @@
+{
+    "rf": {
+        "Normal": {
+            "precision": 1.0,
+            "recall": 0.9923023093072079,
+            "f1-score": 0.9961362838075167,
+            "support": 4287.0
+        },
+        "DDoS": {
+            "precision": 0.9996522948539638,
+            "recall": 1.0,
+            "f1-score": 0.9998261171970092,
+            "support": 2875.0
+        },
+        "PortScan": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 2831.0
+        },
+        "Brute Force": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
+            "support": 0.0
+        },
+        "Web Attack": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
+            "support": 0.0
+        },
+        "Bot": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
+            "support": 0.0
+        },
+        "accuracy": 0.9966976883818673,
+        "macro avg": {
+            "precision": 0.49994204914232726,
+            "recall": 0.49871705155120133,
+            "f1-score": 0.4993270668340877,
+            "support": 9993.0
+        },
+        "weighted avg": {
+            "precision": 0.9998999647458368,
+            "recall": 0.9966976883818673,
+            "f1-score": 0.9982924382692109,
+            "support": 9993.0
+        }
+    },
+    "ae": {
+        "0": {
+            "precision": 0.42888599739765787,
+            "recall": 0.9995334732913459,
+            "f1-score": 0.6002241210253537,
+            "support": 4287.0
+        },
+        "1": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
+            "support": 5706.0
+        },
+        "accuracy": 0.42880016011207844,
+        "macro avg": {
+            "precision": 0.21444299869882893,
+            "recall": 0.49976673664567295,
+            "f1-score": 0.30011206051267686,
+            "support": 9993.0
+        },
+        "weighted avg": {
+            "precision": 0.1839922216395236,
+            "recall": 0.42880016011207844,
+            "f1-score": 0.2574963281132484,
+            "support": 9993.0
+        }
+    },
+    "cnn": {
+        "0": {
+            "precision": 1.0,
+            "recall": 0.6757639374854211,
+            "f1-score": 0.8065144766146993,
+            "support": 4287.0
+        },
+        "1": {
+            "precision": 0.8041149943630215,
+            "recall": 1.0,
+            "f1-score": 0.8914232151226371,
+            "support": 5706.0
+        },
+        "accuracy": 0.8609026318422897,
+        "macro avg": {
+            "precision": 0.9020574971815107,
+            "recall": 0.8378819687427106,
+            "f1-score": 0.8489688458686682,
+            "support": 9993.0
+        },
+        "weighted avg": {
+            "precision": 0.8881497205879517,
+            "recall": 0.8609026318422897,
+            "f1-score": 0.854997340812267,
+            "support": 9993.0
+        }
+    }
+}

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURENET // XAI COMMAND</title>
+    <!-- Fonts: Outfit for Modern UI, JetBrains Mono for Data -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Chart.js & Date Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Icons -->
+    <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette: Deep Cyber */
+            --bg-body: #02040a;
+            --bg-panel: rgba(10, 15, 25, 0.7);
+            --glass-card: rgba(20, 30, 50, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+
+            --accent-cyber: #00f3ff;
+            --accent-danger: #ff0055;
+            --accent-safe: #00ff9d;
+            --accent-warn: #ffcc00;
+            --accent-info: #3b82f6;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --font-ui: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --shadow-glow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.05) 0%, transparent 25%);
+            color: var(--text-primary);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            overflow: hidden;
+            /* App-like feel */
+        }
+
+        /* --- Main Layout: Bento Grid --- */
+        .app-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 80px;
+            background: rgba(5, 5, 10, 0.8);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .nav-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--accent-cyber);
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            /* Dashboard area | Right Feed */
+            grid-template-rows: 60px 1fr;
+            /* Header | Content */
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .top-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 10, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand-logo {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--accent-cyber);
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--accent-safe);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: pulse-animation 2s infinite;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-rows: auto 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--glass-highlight);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* KPI Cards (Top Row) */
+        .kpi-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            background: linear-gradient(145deg, rgba(20, 30, 50, 0.6) 0%, rgba(10, 20, 40, 0.6) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .kpi-val {
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Hero Chart (Timeline) - Row 2, Left 2/3 */
+        .hero-chart {
+            grid-column: 1 / 3;
+            grid-row: 2;
+            min-height: 300px;
+        }
+
+        /* Traffic PPS - Row 2, Right 1/3 */
+        .side-chart-2 {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        /* XAI Radar - Row 3, FULL WIDTH */
+        .side-chart-1 {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            min-height: 350px;
+            /* Give it vertical space */
+        }
+
+        /* Right Feed Panel */
+        .feed-panel {
+            background: rgba(2, 6, 12, 0.6);
+            border-left: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .feed-tabs {
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .feed-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding-bottom: 4px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .feed-tab.active {
+            color: var(--accent-cyber);
+            border-bottom-color: var(--accent-cyber);
+        }
+
+        .feed-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0;
+            list-style: none;
+        }
+
+        .feed-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .feed-item.alert-dos {
+            border-left-color: var(--accent-warn);
+        }
+
+        .feed-item.alert-brute {
+            border-left-color: var(--accent-danger);
+        }
+
+        .feed-item.alert-scan {
+            border-left-color: var(--accent-cyber);
+        }
+
+        .feed-msg {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .feed-meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+
+
+        /* Zero Day Glitch Effect */
+        @keyframes glitch-anim {
+            0% {
+                transform: translate(0);
+                border-color: var(--accent-danger);
+            }
+
+            20% {
+                transform: translate(-2px, 2px);
+                border-color: #fff;
+            }
+
+            40% {
+                transform: translate(-2px, -2px);
+            }
+
+            60% {
+                transform: translate(2px, 2px);
+            }
+
+            80% {
+                transform: translate(2px, -2px);
+            }
+
+            100% {
+                transform: translate(0);
+                border-color: var(--accent-danger);
+            }
+        }
+
+        .alert-zeroday {
+            border-left: 3px solid var(--accent-danger);
+            background: rgba(255, 0, 85, 0.1);
+            animation: glitch-anim 0.5s infinite alternate-reverse;
+        }
+
+        .quarantine-badge {
+            background: rgba(255, 0, 85, 0.2);
+            color: #ff0055;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            border: 1px solid #ff0055;
+            margin-left: 8px;
+            animation: pulse-animation 1s infinite;
+        }
+
+        .forensics-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 10px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--accent-cyber);
+            color: var(--accent-cyber);
+            font-size: 0.75rem;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .forensics-btn:hover {
+            background: var(--accent-cyber);
+            color: #000;
+        }
+
+        /* Animations */
+        @keyframes pulse-animation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(0, 255, 157, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
+            }
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--glass-border);
+            width: 500px;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .threat-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .threat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 2px;
+            background-color: var(--text-secondary);
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-danger);
+            border-color: var(--accent-danger);
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(20px);
+            -ms-transform: translateX(20px);
+            transform: translateX(20px);
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="nav-item active" title="Dashboard Home"><i class="lni lni-grid-alt"></i></div>
+            <a href="/history" class="nav-item" title="Analytics & Reports" style="text-decoration:none;"><i
+                    class="lni lni-stats-up"></i></a>
+            <a href="/topology" class="nav-item" title="Network Topology" style="text-decoration:none;"><i
+                    class="lni lni-network"></i></a>
+            <div style="flex-grow: 1;"></div>
+            <div class="nav-item" title="System Settings" onclick="showThreatsModal()"><i class="lni lni-cog"></i></div>
+            <a href="/logout" class="nav-item" style="color: var(--accent-danger);" title="Logout"><i
+                    class="lni lni-exit"></i></a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-bar">
+                <div class="brand-logo">
+                    <i class="lni lni-shield"></i>
+                    SECURENET // XAI COMMAND
+                </div>
+                <div class="status-badge" id="systemStatus">
+                    <div class="pulse-dot"></div>
+                    SYSTEM ACTIVE
+                </div>
+
+                <div style="margin-left: 2rem; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">ACTIVE DEFENSE</span>
+                    <label class="switch">
+                        <input type="checkbox" id="defenseToggle" onchange="toggleDefense(this)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button onclick="showThreatsModal()"
+                    style="margin-left:auto; margin-right: 1rem; background: rgba(255, 0, 85, 0.2); border: 1px solid var(--accent-danger); color: var(--accent-danger); padding: 5px 15px; border-radius: 8px; cursor: pointer; font-family: var(--font-ui);">
+                    <i class="lni lni-ban"></i> Active Threats
+                </button>
+            </header>
+
+            <!-- Grid Area -->
+            <div class="dashboard-grid">
+
+                <!-- KPI Section -->
+                <div class="kpi-row">
+                    <div class="kpi-card">
+                        <span class="card-title">AI Confidence</span>
+                        <span class="kpi-val" id="aiConfVal" style="color: var(--accent-cyber);">98.2%</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="card-title">False Positives</span>
+                        <span class="kpi-val" id="fprVal">0.0%</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="card-title">Total Alerts</span>
+                        <span class="kpi-val" id="totalAlertsVal">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="card-title">Packets Scanned</span>
+                        <span class="kpi-val" id="pktCountVal"
+                            style="color: var(--accent-safe); font-size: 1.8rem;">0</span>
+                    </div>
+                </div>
+
+                <!-- Hero Chart: Live Timeline -->
+                <div class="card hero-chart">
+                    <div class="card-header">
+                        <span class="card-title">Live Threat Timeline</span>
+                        <i class="lni lni-pulse" style="color: var(--accent-cyber); opacity: 0.7;"></i>
+                    </div>
+                    <div style="flex-grow: 1; position: relative;">
+                        <canvas id="anomalyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Side Chart 1: Distribution (XAI Radar) -->
+                <div class="card side-chart-1">
+                    <div class="card-header">
+                        <span class="card-title">Hybrid XAI Profile</span>
+                    </div>
+                    <div style="flex-grow: 1; position: relative;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Side Chart 2: Trends/Traffic -->
+                <div class="card side-chart-2">
+                    <div class="card-header">
+                        <span class="card-title">Traffic Intensity</span>
+                    </div>
+                    <div style="flex-grow: 1; position: relative;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Feed -->
+            <aside class="feed-panel">
+                <div class="feed-tabs">
+                    <button class="feed-tab active">Live Logs</button>
+                    <button class="feed-tab">Historical</button>
+                    <!-- Small controls could go here -->
+                </div>
+                <ul class="feed-list" id="feedList">
+                    <!-- Populated via JS -->
+                    <li style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                        Waiting for traffic...
+                    </li>
+                </ul>
+            </aside>
+            <!-- Threat Modal -->
+            <div class="modal-overlay" id="threatModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span>Active Threat Enforcement</span>
+                        <button class="close-btn" onclick="closeThreatsModal()">&times;</button>
+                    </div>
+                    <div id="threatContent">Loading...</div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- Theme & Config ---
+        const colors = {
+            cyber: '#00f3ff',
+            danger: '#ff0055',
+            warn: '#ffcc00',
+            purple: '#8b5cf6',
+            safe: '#00ff9d',
+            text: '#94a3b8'
+        };
+
+        Chart.defaults.color = colors.text;
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+
+        // --- Charts Initialization ---
+
+        // 1. Live Timeline (Bubble)
+        const anomalyCtx = document.getElementById('anomalyChart').getContext('2d');
+        const anomalyChart = new Chart(anomalyCtx, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Threats',
+                    data: [],
+                    backgroundColor: (ctx) => {
+                        const v = ctx.raw;
+                        if (!v) return colors.danger;
+                        if (v.type?.includes('DoS')) return colors.warn;
+                        if (v.type?.includes('Port')) return colors.cyber;
+                        if (v.type?.includes('Brute')) return colors.danger;
+                        return colors.purple;
+                    },
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Performance for live data
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { unit: 'second', tooltipFormat: 'HH:mm:ss' },
+                        grid: { color: 'rgba(255,255,255,0.02)' },
+                        ticks: { color: colors.text }
+                    },
+                    y: {
+                        min: 0, max: 105,
+                        grid: { color: 'rgba(255,255,255,0.02)' },
+                        title: { display: true, text: 'Confidence %' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.raw.type} (${ctx.raw.y}%)`
+                        },
+                        backgroundColor: 'rgba(5, 10, 20, 0.9)',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleFont: { family: "'Outfit', sans-serif" }
+                    }
+                }
+            }
+        });
+
+        // 2. Attack Distribution (Doughnut)
+        // 2. Hybrid XAI Radar (Replaces Pie)
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        const xaiRadarChart = new Chart(pieCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Duration Risk', 'Port Sens.', 'Payload Size', 'Anomaly Rate'],
+                datasets: [{
+                    label: 'Threat Profile',
+                    data: [0, 0, 0, 0],
+                    fill: true,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    pointBackgroundColor: 'rgb(255, 99, 132)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(255, 99, 132)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: {
+                            color: '#e2e8f0',
+                            font: { size: 14, family: "'JetBrains Mono', monospace", weight: 'bold' }
+                        },
+                        ticks: { display: true, backdropColor: 'transparent', color: 'rgba(255,255,255,0.3)', max: 100, min: 0, stepSize: 20 }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { color: '#fff' } }
+                }
+            }
+        });
+
+        // 3. Traffic Intensity (Line - PPS)
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Packets / Sec',
+                    data: [],
+                    borderColor: colors.safe,
+                    backgroundColor: (ctx) => {
+                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+                        gradient.addColorStop(0, 'rgba(0, 255, 157, 0.2)');
+                        gradient.addColorStop(1, 'rgba(0, 255, 157, 0)');
+                        return gradient;
+                    },
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { display: false },
+                    y: { display: true, min: 0, suggestedMax: 5 }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // --- Tab Logic ---
+        const tabs = document.querySelectorAll('.feed-tab');
+        let currentTab = 'live';
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // UI Toggle
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const tabName = tab.innerText.toLowerCase();
+                if (tabName.includes('live')) {
+                    currentTab = 'live';
+                    document.getElementById('feedList').innerHTML = '';
+                    renderFeed(alertsBuffer); // Restore live view buffer
+                } else if (tabName.includes('historical')) {
+                    currentTab = 'historical';
+                    fetchHistoricalLogs();
+                }
+            });
+        });
+
+        async function fetchHistoricalLogs() {
+            const list = document.getElementById('feedList');
+            list.innerHTML = '<li style="padding:1rem; text-align:center; color: var(--text-muted);">Loading History...</li>';
+
+            try {
+                const res = await fetch('/api/historical'); // Ensure Fetch works
+                if (!res.ok) throw new Error("API Error");
+                const data = await res.json();
+
+                list.innerHTML = '';
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<li style="padding:1rem; text-align:center;">No History Found</li>';
+                    return;
+                }
+
+                // Render all
+                data.forEach(alert => {
+                    const li = createAlertItem(alert);
+                    list.appendChild(li);
+                });
+
+            } catch (e) {
+                list.innerHTML = `<li style="padding:1rem; text-align:center; color: var(--accent-danger);">Failed to load history</li>`;
+                console.error(e);
+            }
+        }
+
+        function createAlertItem(alert) {
+            const li = document.createElement('li');
+            li.className = `feed-item`;
+
+            const type = alert.type || alert.attack_type || 'Unknown';
+            if (type.includes('DoS')) li.classList.add('alert-dos');
+            else if (type.includes('Port')) li.classList.add('alert-scan');
+            else if (type.includes('Brute')) li.classList.add('alert-brute');
+            else if (type.includes('Anomaly') || type.includes('Zero-Day')) li.classList.add('alert-zeroday');
+
+            const timeStr = alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : '';
+
+            // Check if confidence is already 0-100 or 0-1
+            let displayConf = alert.confidence || 0;
+            if (displayConf <= 1) displayConf *= 100;
+
+            let details = alert.details || 'No AI reasoning details processing.';
+            let forensicsLink = '';
+
+            // Extract Forensics File if present
+            if (details.includes("[Evidence Saved:")) {
+                const match = details.match(/Evidence Saved: (.*?)\]/);
+                if (match && match[1]) {
+                    const filename = match[1];
+                    forensicsLink = `<a href="/api/forensics/${filename}" class="forensics-btn"><i class="lni lni-download"></i> Download Forensics Capture</a>`;
+                    details = details.replace(/\[Evidence Saved: .*?\]/, ''); // Clean up text
+                }
+            }
+
+            // IPS Status Badges
+            let ipsBadge = '';
+            if (alert.ips_status === 'BLOCKED') {
+                ipsBadge = '<span style="background: rgba(255, 0, 85, 0.2); color: #ff0055; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #ff0055; margin-left: 8px;">BLOCKED</span>';
+            } else if (alert.ips_status === 'QUARANTINED') {
+                ipsBadge = '<span class="quarantine-badge">QUARANTINED</span>';
+            }
+
+            const country = alert.geo_country || 'Unknown';
+            const city = alert.geo_city || 'Unknown';
+            const locationTag = `<span style="font-size: 0.7rem; color: var(--accent-cyber);"><i class="lni lni-world"></i> ${city}, ${country}</span>`;
+
+            li.innerHTML = `
+                <div class="feed-msg">${type} ${ipsBadge}</div>
+                <div class="feed-meta">
+                    <span>${timeStr}</span>
+                    ${locationTag}
+                    <span>${Number(displayConf).toFixed(1)}% Conf</span>
+                </div>
+                 <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px; padding: 6px; background: rgba(0,0,0,0.2); border-left: 2px solid rgba(255,255,255,0.1);">
+                     <strong>AI Analysis:</strong> ${details}
+                     ${forensicsLink ? '<br>' + forensicsLink : ''}
+                </div>
+                 <div style="font-size: 0.75rem; color: var(--accent-safe); margin-top: 4px; padding: 4px; border: 1px dashed var(--accent-safe); border-radius: 4px;">
+                     <strong>OPEN CMD:</strong> ${alert.mitigation || alert.mitigation_action || 'Review Logs'}
+                </div>
+            `;
+            return li;
+        }
+
+        function renderFeed(items) {
+            const list = document.getElementById('feedList');
+            list.innerHTML = '';
+            // If items are [Newest, Oldest]. We want Newest TOP.
+            // AppendChild renders them in order. 
+            // So items[0] (Newest) goes first. Correct.
+            items.forEach(alert => {
+                const li = createAlertItem(alert);
+                list.appendChild(li);
+            });
+        }
+
+
+        // --- Socket Logic ---
+        const socket = io();
+        let alertsBuffer = []; // Local cache of live alerts (limited to 50)
+        let latestAlertId = -1;
+
+        // PPS Logic
+        let lastPktCount = 0;
+        let lastPktTime = Date.now();
+
+        socket.on('connect', () => {
+            console.log("Connected to Stream");
+            document.getElementById('systemStatus').innerHTML = `<div class="pulse-dot"></div> MONITORING ACTIVE`;
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('systemStatus').innerHTML = `<div class="pulse-dot" style="background: red; animation: none;"></div> DISCONNECTED`;
+        });
+
+        socket.on('update_data', (msg) => {
+            // Keep stats updated regardless of tab
+            const stats = msg.stats;
+            const alerts = msg.alerts; // List of alerts (Limit 50, DESC - Newest First)
+
+            // Update KPIs with Real Data
+            if (stats.ai_confidence !== undefined) {
+                document.getElementById('aiConfVal').innerText = stats.ai_confidence.toFixed(1) + "%";
+            }
+            if (stats.total_alerts !== undefined) {
+                document.getElementById('totalAlertsVal').innerText = stats.total_alerts;
+            }
+
+            document.getElementById('fprVal').innerText = stats.fpr ? stats.fpr.toFixed(1) + "%" : "0.0%";
+            // Updated: Show Total Packets instead of Drift
+            if (stats.total_packets !== undefined) {
+                document.getElementById('pktCountVal').innerText = stats.total_packets;
+
+                // --- Calculate PPS for Series Graph ---
+                const now = Date.now();
+                const timeDiff = (now - lastPktTime) / 1000; // Seconds
+                if (timeDiff >= 1) { // Update graph every ~1 second approx
+                    const countDiff = stats.total_packets - lastPktCount;
+                    const pps = countDiff / timeDiff; // Packets Per Second
+
+                    // Push to Chart
+                    const timeLabel = new Date().toLocaleTimeString();
+                    if (trendChart.data.labels.length > 20) {
+                        trendChart.data.labels.shift();
+                        trendChart.data.datasets[0].data.shift();
+                    }
+                    trendChart.data.labels.push(timeLabel);
+                    trendChart.data.datasets[0].data.push(pps);
+                    trendChart.update('none'); // Efficient update
+
+                    // Reset trackers
+                    lastPktCount = stats.total_packets;
+                    lastPktTime = now;
+                }
+            } else {
+                document.getElementById('pktCountVal').innerText = "0";
+            }
+
+            // If we are on History Tab, ignore feed updates
+            if (currentTab !== 'live') return;
+
+            if (alerts && alerts.length > 0) {
+                // Find new items since last ID
+                let newItems = [];
+                if (latestAlertId === -1) {
+                    latestAlertId = alerts[0].id;
+                    newItems = alerts;
+                } else {
+                    // Only process items with ID > latest
+                    newItems = alerts.filter(a => a.id > latestAlertId);
+                    if (newItems.length > 0) {
+                        latestAlertId = newItems[0].id;
+                    }
+                }
+
+                // Update Buffer (Replace with full fresh list for consistency)
+                alertsBuffer = alerts;
+
+                if (newItems.length > 0) {
+                    processNewLiveAlerts(newItems);
+                }
+                updateCharts(alerts); // Update other charts (Pie, Bubble)
+            }
+        });
+
+        // --- Threat Modal Logic (Global Scope) ---
+        async function toggleDefense(checkbox) {
+            const statusBadge = document.getElementById('systemStatus');
+            try {
+                const res = await fetch('/api/toggle_defense', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ active: checkbox.checked })
+                });
+                const data = await res.json();
+
+                if (data.active) {
+                    statusBadge.innerHTML = '<div class="pulse-dot" style="background:#ff0055; box-shadow: 0 0 10px #ff0055;"></div> ACTIVE DEFENSE ENGAGED';
+                    statusBadge.style.borderColor = '#ff0055';
+                    statusBadge.style.color = '#ff0055';
+                } else {
+                    statusBadge.innerHTML = '<div class="pulse-dot"></div> SYSTEM MONITORING';
+                    statusBadge.style.borderColor = 'var(--accent-cyber)';
+                    statusBadge.style.color = 'var(--accent-cyber)';
+                }
+            } catch (e) {
+                console.error("Error toggling defense", e);
+                checkbox.checked = !checkbox.checked; // Revert on error
+            }
+        }
+
+        function showThreatsModal() {
+            document.getElementById('threatModal').style.display = 'flex';
+            fetchThreats();
+        }
+
+        function closeThreatsModal() {
+            document.getElementById('threatModal').style.display = 'none';
+        }
+
+        async function fetchThreats() {
+            const container = document.getElementById('threatContent');
+            container.innerHTML = '<div style="text-align:center; padding: 20px;">Fetching global ban lists...</div>';
+
+            try {
+                const res = await fetch('/api/threats');
+                const data = await res.json();
+
+                let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
+
+                // Quarantined Column
+                html += '<div><h4 style="color:#ff0055; margin-bottom:10px;">QUARANTINED (Zero-Day)</h4><ul class="threat-list">';
+                if (data.quarantined.length === 0) html += '<li style="color:#666; font-size:0.8rem;">No active quarantines</li>';
+                data.quarantined.forEach(ip => {
+                    html += `<li class="threat-item" style="border-left: 2px solid #ff0055;"><span>${ip}</span></li>`;
+                });
+                html += '</ul></div>';
+
+                // Blocked Column
+                html += '<div><h4 style="color:#ffcc00; margin-bottom:10px;">BLOCKED (Firewall)</h4><ul class="threat-list">';
+                if (data.blocked.length === 0) html += '<li style="color:#666; font-size:0.8rem;">No active blocks</li>';
+                data.blocked.forEach(ip => {
+                    html += `<li class="threat-item" style="border-left: 2px solid #ffcc00;"><span>${ip}</span></li>`;
+                });
+                html += '</ul></div>';
+
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Error loading threat data.</div>';
+            }
+        }
+
+        function processNewLiveAlerts(newItems) {
+            const list = document.getElementById('feedList');
+            if (!list) return;
+
+
+
+
+
+            async function fetchThreats() {
+                const container = document.getElementById('threatContent');
+                container.innerHTML = '<div style="text-align:center; padding: 20px;">Fetching global ban lists...</div>';
+
+                try {
+                    const res = await fetch('/api/threats');
+                    const data = await res.json();
+
+                    let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
+
+                    // Quarantined Column
+                    html += '<div><h4 style="color:#ff0055; margin-bottom:10px;">QUARANTINED (Zero-Day)</h4><ul class="threat-list">';
+                    if (data.quarantined.length === 0) html += '<li style="color:#666; font-size:0.8rem;">No active quarantines</li>';
+                    data.quarantined.forEach(ip => {
+                        html += `<li class="threat-item" style="border-left: 2px solid #ff0055;"><span>${ip}</span></li>`;
+                    });
+                    html += '</ul></div>';
+
+                    // Blocked Column
+                    html += '<div><h4 style="color:#ffcc00; margin-bottom:10px;">BLOCKED (Firewall)</h4><ul class="threat-list">';
+                    if (data.blocked.length === 0) html += '<li style="color:#666; font-size:0.8rem;">No active blocks</li>';
+                    data.blocked.forEach(ip => {
+                        html += `<li class="threat-item" style="border-left: 2px solid #ffcc00;"><span>${ip}</span></li>`;
+                    });
+                    html += '</ul></div>';
+
+                    html += '</div>';
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    container.innerHTML = '<div style="color:red; text-align:center;">Error loading threat data.</div>';
+                }
+            }
+            // Clear waiting
+            if (list.textContent.includes('Waiting')) list.innerHTML = '';
+
+            // newItems is DESC (Newest ... Oldest).
+            // We want to PREPEND them to the list.
+            // If we have [10, 9]. 
+            // Prepend 9 -> List [9]
+            // Prepend 10 -> List [10, 9]. Correct.
+            // So we reverse newItems to iterate Ascending (Old -> New).
+
+            [...newItems].reverse().forEach(alert => {
+                const li = createAlertItem(alert);
+                list.insertBefore(li, list.firstChild);
+
+                if (list.children.length > 50) {
+                    list.removeChild(list.lastChild);
+                }
+            });
+        }
+
+        function updateCharts(alerts) {
+            // 1. Timeline
+            const bubbleData = alerts.map(a => ({
+                x: new Date(a.timestamp),
+                y: (a.confidence <= 1 ? a.confidence * 100 : a.confidence), // Normalize
+                r: 6,
+                type: a.type
+            }));
+            anomalyChart.data.datasets[0].data = bubbleData;
+            anomalyChart.update('none');
+
+            // 2. Pie Distribution
+            // 2. Hybrid XAI Radar (Replaces Pie)
+            if (alerts.length > 0) {
+                const latest = alerts[0];
+                if (latest.xai_data) {
+                    const scores = latest.xai_data.split(',').map(Number);
+                    xaiRadarChart.data.datasets[0].data = scores;
+                    // Color coding based on type? Optional polish.
+                }
+            }
+            xaiRadarChart.update();
+
+            // 3. Trend - MIGRATED TO socket.on('update_data') for PPS
+            /* 
+            const now = new Date();
+            const label = now.toLocaleTimeString();
+            const recentCount = alerts.filter(a => (now - new Date(a.timestamp)) < 60000).length;
+
+            if (trendChart.data.labels.length > 20) {
+                trendChart.data.labels.shift();
+                trendChart.data.datasets[0].data.shift();
+            }
+            trendChart.data.labels.push(label);
+            trendChart.data.datasets[0].data.push(recentCount);
+            trendChart.update(); 
+            */
+        }
+
+        // Sidebar Mock Interactivity
+        document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const href = this.getAttribute('href');
+                if (href) return; // Allow normal links
+
+                // Toggle active state
+                document.querySelectorAll('.sidebar .nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+    </script>
+</body>
+
+</html>
