@@ -1,79 +1,122 @@
-# AI-Based Intrusion Detection System (IDS)
-## Startup Guide
 
-# List of all 40 Features used:
-## the model takes exactly list of features for every input:
+# 🛡️ AI-IDS: AI-Driven Intrusion Detection System
 
-Destination Port
-Flow Duration
-Total Fwd Packets
-Total Backward Packets
-Total Length of Fwd Packets
-Total Length of Bwd Packets
-Fwd Packet Length Max
-Fwd Packet Length Min
-Fwd Packet Length Mean
-Fwd Packet Length Std
-Bwd Packet Length Max
-Bwd Packet Length Min
-Bwd Packet Length Mean
-Bwd Packet Length Std
-Flow Bytes/s
-Flow Packets/s
-Fwd PSH Flags
-Bwd PSH Flags
-Fwd URG Flags
-Bwd URG Flags
-Fwd Header Length
-Bwd Header Length
-Fwd Packets/s
-Bwd Packets/s
-Min Packet Length
-Max Packet Length
+<p align="center">
+  <img src="assets/dashboard_overview.png" alt="Dashboard Overview" width="100%">
+</p>
+
+## 📖 Overview
+**AI-IDS** is a next-generation security monitoring tool that combines **Deep Learning**, **Machine Learning**, and **Behavioral Analytics** to detect sophisticated cyber threats in real-time. Unlike traditional signature-based systems, AI-IDS can identify zero-day exploits and complex attack patterns using a multi-layered AI approach.
+
+Key capabilities include:
+- **XAI Radar**: Explainable AI visualization to understand *why* an alert was triggered.
+- **Real-time Forensics**: Automated capture of suspicious packet payloads.
+- **Active Defense**: Simulated firewall blocking and quarantine mechanisms.
+
+---
+
+## 📸 Screenshots
+
+### 1. Active Threat Dashboard
+Real-time monitoring of network traffic, threat classification, and AI confidence scores.
+<p align="center">
+  <img src="assets/dashboard_overview.png" alt="Dashboard" width="80%">
+</p>
+
+### 2. Threat Logs & Timeline
+Detailed timeline of detected attacks with specific "Attack Type" (e.g., DoS, Port Scan) and "Mitigation" suggestions.
+<p align="center">
+  <img src="assets/dashboard_logs.png" alt="Threat Logs" width="80%">
+</p>
+
+### 3. Network Topology
+Visual map of the network showing the relationship between potential attackers and targets.
+<p align="center">
+  <img src="assets/topology.png" alt="Topology" width="80%">
+</p>
+
+---
+
+## 🚀 Features
+- **Deep Learning Engine**:
+    - **Autoencoder**: Unsupervised anomaly detection for zero-day threats.
+    - **CNN-LSTM**: Spatial-temporal analysis for complex sequential attacks.
+- **Signature Engine**: Random Forest Classifier for high-speed detection of known attacks (DoS, Brute Force).
+- **Explainable AI (XAI)**: Visualizes risk factors (Duration, Port, Payload Size) to help analysts make fast decisions.
+- **Safe Mode**: Automatically falls back to Random Forest if GPU/Deep Learning dependencies are missing.
+
+---
+
+## 🛠️ Tech Stack
+- **Backend**: Python 3.13, Flask, Flask-SocketIO
+- **AI/ML**: TensorFlow 2.16+, Scikit-learn, NumPy, Pandas
+- **Frontend**: HTML5, CSS3, JavaScript (SocketIO Client)
+- **Database**: MySQL (Alerts & Access Control)
+- **Visualization**: Chart.js, Vis.js (Topology)
+
+---
+
+## 📥 Installation
+
 ### Prerequisites
-*   Python 3.11+
-*   MySQL Server (Running)
-*   Administrator Privileges (for Sniffer)
+- Python 3.10+ (Tested on 3.13)
+- MySQL Server (Optional persistence, defaults to in-memory if not configured)
 
-### Step 1: Start the Backend (The Brain)
-Open Terminal 1:
-```bash
-python app.py
-```
-*Wait until you see: `Running on http://127.0.0.1:5000`*
+### Steps
 
-### Step 2: Open the Dashboard
-Open your web browser and go to:
-[http://localhost:5000](http://localhost:5000)
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/dashvanth/AI_IDS-Intrusion-Detection-System-.git
+   cd AI_IDS-Intrusion-Detection-System-
+   ```
 
-### Step 3: Start the Sniffer (The Eyes)
-Open Terminal 2 (**Run as Administrator**):
-```bash
-cd "D:\capstone project"
-python sniffer.py --iface "Wi-Fi"
-```
-*Replace "Wi-Fi" with your actual network interface name if different.*
+2. **Set up Virtual Environment** (Recommended)
+   ```bash
+   python -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # Linux/Mac:
+   source .venv/bin/activate
+   ```
 
-### Technical Note: Real-Time Communication
-**Does this project use Sockets?**
-Yes, the project uses **Flask-SocketIO** (WebSockets).
+3. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *Note: If you are on Python 3.13, ensure you install the compatible TensorFlow version or let `pip` handle the resolution.*
 
-**Why is it necessary?**
-Standard websites require you to refresh the page to see new data ("Pull" model). For an Intrusion Detection System, seconds matter. WebSockets allow the backend to **"Push"** alerts to the dashboard instantly without you hitting refresh.
+4. **Initialize Models**
+   If this is your first run, generate the synthetic data and train the models:
+   ```bash
+   python generate_data.py
+   python train_model.py
+   ```
 
-**Advantages:**
-1.  **Zero Latency**: Alerts appear the millisecond they are detected.
-2.  **Efficiency**: Reduces server load compared to constantly polling for updates.
-3.  **Bi-directional**: Allows the server to send stats (like "Total Packets") continuously.
+---
 
-### Step 4: Run Attack Simulation (The Test)
-Open Terminal 3:
-```bash
-python attack_simulation.py
-```
-*This will send fake attacks to test the dashboard.*
+## 🚦 Usage
 
-### Troubleshooting
-*   **No Alerts?** Ensure `attack_simulation.py` is running.
-*   **Database Error?** Ensure MySQL is running and credentials in `src/database.py` are correct.
-*   **Sniffer Error?** Ensure you installed Npcap and are running as Admin.
+1. **Start the Backend**
+   ```bash
+   python app.py
+   ```
+   Access the dashboard at `http://localhost:5000`.
+
+2. **Login**
+   - **Username**: `admin`
+   - **Password**: `password`
+
+3. **Simulate Attacks**
+   To see the system in action, run the attack simulation script in a separate terminal:
+   ```bash
+   python attack_simulation.py
+   ```
+   This will generate DoS, Port Scan, and other traffic patterns that the IDS will detect and display on the dashboard.
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Please fork the repository and submit a pull request.
+
+## 📄 License
+This project is licensed under the MIT License.
